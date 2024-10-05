@@ -19,4 +19,5 @@ if [ ! -f "$FLAG_FILE" ]; then
   touch "$FLAG_FILE"
 else
   echo "Skipping setup. Wallet and blocks already created."
+  /usr/bin/bitcoin-cli -regtest loadwallet default
 fi

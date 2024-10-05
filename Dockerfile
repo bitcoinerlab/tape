@@ -1,21 +1,10 @@
 # -------------------------------------------------------
-# Dockerfile for bitcoinerlab/tester
+# Dockerfile for rewindbitcoin Tape
 # -------------------------------------------------------
-
-# Description:
-# This Dockerfile sets up an environment based on a fork from:
-# https://github.com/bitcoinjs/regtest-server/tree/master/docker
-# 
-# Main Changes:
-# 1. Installation and execution of Blockstream's electrs server.
-# 2. Esplora backend running on port 3002.
-# 3. Electrum server running on port 60401.
-# 4. Bitcoin Core set to v26.
-# 5. Esplora web server.
-
+#
 # Quick Guide:
 # 1. Building a Local Image:
-#    $ docker build -t bitcoinerlab/tester .
+#    $ docker build -t bitcoinerlab/tape .
 #
 # 2. Building for Multiple Platforms & Uploading to Docker Hub:
 #    a. Login to Docker Hub:
@@ -25,65 +14,67 @@
 #       $ docker buildx create --use
 #
 #    c. Build & Push to Docker Hub:
-#       $ docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t bitcoinerlab/tester . --push
-#       Discard v7 if it the OS kills the compilation process for using too many resources
-#       $ docker buildx build --platform linux/amd64,linux/arm64 -t bitcoinerlab/tester . --push
+#       $ docker buildx build --platform linux/amd64,linux/arm64 -t bitcoinerlab/tape . --push
 #
 # 3. Running the Image:
-#    $ docker run -d -p 8080:8080 -p 60401:60401 -p 3002:3002 bitcoinerlab/tester
+#    $ docker run -d -p 8080:8080 -p 60401:60401 -p 3002:3002 bitcoinerlab/tape
+#
+# Use Ubuntu 24.04 LTS as the base image
+FROM ubuntu:24.04
 
-# -------------------------------------------------------
-# Credit for the original work goes to Jonathan Underwood.
-# -------------------------------------------------------
+# Set a maintainer label
+LABEL maintainer="rewindbitcoin@gmail.com"
 
+# Avoid user interaction when installing packages
+ENV DEBIAN_FRONTEND=noninteractive
 
-FROM ubuntu:22.04
-LABEL maintainer="José Luis Landabaso @bitcoinerlab"
+# Update packages and install essential ones
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    git \
+    curl \
+    vim \
+    wget
 
-ARG TARGETPLATFORM
-RUN echo "TARGETPLATFORM: ${TARGETPLATFORM}"
+# Set the working directory
+WORKDIR /root
 
-RUN apt update && apt install -y software-properties-common
+# Start bash shell by default when a container starts
+CMD ["/bin/bash"]
 
-RUN apt update && \
-   apt install -y \
-   curl \
-   wget \
-   tar \
-   python3 \
-   python3-pip \
-   build-essential \
-   gnupg2 \
-   libzmq3-dev \
-   libsnappy-dev && \
-   curl --silent --location https://deb.nodesource.com/setup_20.x | bash -
+## I 'll need:
+## --enable-txindex
+## --with-zmq
 
+#See: doc/build-unix.md
+RUN apt-get install -y build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 &&\
+  apt-get install -y libevent-dev libboost-dev &&\
+  apt install -y libsqlite3-dev
+
+#we'll need zmq support
+RUN apt-get install -y libzmq3-dev
+
+RUN wget https://bitcoincore.org/bin/bitcoin-core-27.1/bitcoin-27.1.tar.gz &&\
+  tar zxvf bitcoin-27.1.tar.gz
+
+WORKDIR /root/bitcoin-27.1
+
+# Modify chainparams.cpp before compiling so regtest has same halving as mainnet and we can be rich in regtest too
+RUN sed -i 's/consensus.nSubsidyHalvingInterval = 150;/consensus.nSubsidyHalvingInterval = 210000;/' src/kernel/chainparams.cpp
+
+RUN ./autogen.sh &&\
+  ./configure --without-gui --enable-zmq --enable-txindex --disable-bdb --prefix=/usr &&\
+  make -j 9 &&\
+  make install
 
 WORKDIR /root
 
-RUN wget "https://bitcoincore.org/bin/bitcoin-core-26.0/SHA256SUMS" && \
-    wget "https://bitcoincore.org/bin/bitcoin-core-26.0/SHA256SUMS.asc"
+RUN curl --silent --location https://deb.nodesource.com/setup_20.x | bash - &&\
+  apt-get install -y nodejs
 
-RUN ARCH="unsupported"; \
-  case "$TARGETPLATFORM" in \
-  "linux/amd64") ARCH="x86_64-linux-gnu" ;; \
-  "linux/arm64") ARCH="aarch64-linux-gnu" ;; \
-  "linux/arm/v7") ARCH="arm-linux-gnueabihf" ;; \
-  *) echo "Unsupported platform: $TARGETPLATFORM" && exit 1 ;; \
-  esac && \
-  wget "https://bitcoincore.org/bin/bitcoin-core-26.0/bitcoin-26.0-${ARCH}.tar.gz" && \
-  sha256sum --ignore-missing --check SHA256SUMS && \
-  tar xvf "bitcoin-26.0-${ARCH}.tar.gz" && \
-  rm -f "bitcoin-26.0-${ARCH}.tar.gz" SHA256SUM* && \
-  cp -R bitcoin-26.0/* /usr/ && \
-  rm -rf bitcoin-26.0/
-
-RUN apt install -y \
-  git \
-  vim \
-  nodejs && \
-  mkdir /root/regtest-data && \
+RUN mkdir /root/regtest-data && \
   echo "satoshi" > /root/regtest-data/KEYS
+
 
 COPY run.sh run_bitcoind_service.sh install_leveldb.sh ./
 

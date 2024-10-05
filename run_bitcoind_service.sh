@@ -6,4 +6,5 @@ sleep 2
 /usr/bin/bitcoin-cli -regtest createwallet default
 /usr/bin/bitcoin-cli -regtest loadwallet default
 ADDRESS=$(/usr/bin/bitcoin-cli -regtest getnewaddress "" bech32)
-/usr/bin/bitcoin-cli -regtest generatetoaddress 432 $ADDRESS
+#Mine 1 million btc and be rich!
+/usr/bin/bitcoin-cli -regtest generatetoaddress 20100 $ADDRESS

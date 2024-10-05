@@ -1,5 +1,5 @@
 # -------------------------------------------------------
-# Dockerfile for rewindbitcoin Tape
+# Dockerfile for RewindBitcoin's Tape
 # -------------------------------------------------------
 #
 # Quick Guide:
@@ -19,6 +19,12 @@
 # 3. Running the Image:
 #    $ docker run -d -p 8080:8080 -p 60401:60401 -p 3002:3002 bitcoinerlab/tape
 #
+# If you get random GPG signature errors, clear Docker cache:
+#    $ docker builder prune
+#
+# If you get resource exhausted errors, try restarting docker and deleting old images/volumes, then:
+#   $ docker system prune -a --volumes
+
 # Use Ubuntu 24.04 LTS as the base image
 FROM ubuntu:24.04
 
@@ -63,8 +69,8 @@ WORKDIR /root/bitcoin-27.1
 RUN sed -i 's/consensus.nSubsidyHalvingInterval = 150;/consensus.nSubsidyHalvingInterval = 210000;/' src/kernel/chainparams.cpp
 
 RUN ./autogen.sh &&\
-  ./configure --without-gui --enable-zmq --enable-txindex --disable-bdb --prefix=/usr &&\
-  make -j 9 &&\
+  ./configure --without-gui --enable-zmq --enable-txindex --disable-bdb --disable-tests --disable-gui-tests --disable-bench --prefix=/usr &&\
+  make -j 4 &&\
   make install
 
 WORKDIR /root

@@ -25,22 +25,25 @@ export RPC=http://localhost:18443
 export PORT=8080
 
 node /root/regtest-server/index.js &
-NODE_PID=$!
+REGTESTSERVER_PID=$!
 
-(cd /root/esplora && PORT=5000 npm run dev-server)
+(cd /root/esplora && PORT=5000 npm run dev-server) &
+ESPLORA_PID=$!
 
-cd
+cd /root
 
 # Function to stop bitcoind and electrs gracefully
 function graceful_shutdown {
   echo "Stopping Tape services gracefully..."
   /usr/bin/bitcoin-cli -datadir="$BITCOIN_DIR" -regtest stop
   kill -SIGTERM $ELECTRS_PID
-  kill -SIGTERM $NODE_PID
+  kill -SIGTERM $REGTESTSERVER_PID
+  kill -SIGTERM $ESPLORA_PID
 
   # Wait up to 30 seconds for each process to terminate
   timeout 30 wait $ELECTRS_PID || echo "Electrs did not terminate in time; force stopping." && kill -9 $ELECTRS_PID
-  timeout 30 wait $NODE_PID || echo "Node process did not terminate in time; force stopping." && kill -9 $NODE_PID
+  timeout 30 wait $REGTESTSERVER_PID || echo "Node regtest-server process did not terminate in time; force stopping." && kill -9 $REGTESTSERVER_PID
+  timeout 30 wait $ESPLORA_PID || echo "Node esplora process did not terminate in time; force stopping." && kill -9 $REGTESTSERVER_PID
 }
 
 # Trap SIGTERM and SIGINT to stop services gracefully

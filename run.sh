@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
+export TAPE_VOLUME_DIR="/root/tape-volume"
+export BITCOIN_DIR="$TAPE_VOLUME_DIR/bitcoin"
+ELECTRS_DB="$TAPE_VOLUME_DIR/electrs/db"
+export INDEXDB="$TAPE_VOLUME_DIR/bitcoinjs-regtest-server-data/db"
+mkdir -p "$BITCOIN_DIR" "$ELECTRS_DB" "$INDEXDB"
+
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
 $DIR/run_bitcoind_service.sh
-
-TAPE_VOLUME_DIR="/root/tape-volume"
-BITCOIN_DIR="$TAPE_VOLUME_DIR/bitcoin"
-ELECTRS_DB="$TAPE_VOLUME_DIR/electrs/db"
-INDEXDB="$TAPE_VOLUME_DIR/bitcoinjs-regtest-server-data/db"
-mkdir -p "$BITCOIN_DIR" "$ELECTRS_DB" "$INDEXDB"
 
 #Run electrs:
 /usr/bin/bitcoin-cli -datadir="$BITCOIN_DIR" -regtest getblockchaininfo # wait until the chain is synced...
@@ -18,7 +18,6 @@ electrs -vvvv --electrum-rpc-addr 0.0.0.0:60401 --http-addr 0.0.0.0:3002 --daemo
 
 export RPCCOOKIE="$BITCOIN_DIR/regtest/.cookie"
 export KEYDB=/root/regtest-data/KEYS
-export INDEXDB
 export ZMQ=tcp://127.0.0.1:30001
 export RPCCONCURRENT=32
 export RPC=http://localhost:18443

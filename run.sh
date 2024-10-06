@@ -15,6 +15,7 @@ $DIR/run_bitcoind_service.sh
 #that it can accept calls from any external address. default is 127.0.0.1 which
 #would anly let accept connections within the Docker image
 electrs -vvvv --electrum-rpc-addr 0.0.0.0:60401 --http-addr 0.0.0.0:3002 --daemon-dir "$BITCOIN_DIR" --db-dir "$ELECTRS_DB" --network regtest --cors "*" &
+ELECTRS_PID=$!
 
 export RPCCOOKIE="$BITCOIN_DIR/regtest/.cookie"
 export KEYDB=/root/regtest-data/KEYS
@@ -26,3 +27,19 @@ export PORT=8080
 node /root/regtest-server/index.js &
 
 (cd /root/esplora && PORT=5000 npm run dev-server)
+
+cd
+
+# Function to stop bitcoind and electrs gracefully
+function graceful_shutdown {
+  echo "Stopping Tape services gracefully..."
+  /usr/bin/bitcoin-cli -datadir="$BITCOIN_DIR" -regtest stop
+  kill -SIGTERM $ELECTRS_PID
+  wait $ELECTRS_PID
+}
+
+# Trap SIGTERM and SIGINT to stop services gracefully
+trap graceful_shutdown SIGTERM SIGINT
+
+# Keep the script running to handle signals
+wait

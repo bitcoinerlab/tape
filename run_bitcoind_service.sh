@@ -12,7 +12,7 @@ if [ ! -f "$FLAG_FILE" ]; then
   echo "First-time setup: Creating wallet and mining blocks..."
   /usr/bin/bitcoin-cli -datadir="$BITCOIN_DIR" -regtest createwallet default
   /usr/bin/bitcoin-cli -datadir="$BITCOIN_DIR" -regtest loadwallet default
-  ADDRESS=$(/usr/bin/bitcoin-cli -regtest getnewaddress "" bech32)
+  ADDRESS=$(/usr/bin/bitcoin-cli -datadir="$BITCOIN_DIR" -regtest getnewaddress "" bech32)
   #Mine 1 million btc and be rich!
   /usr/bin/bitcoin-cli -datadir="$BITCOIN_DIR" -regtest generatetoaddress 20100 $ADDRESS
   # Create a flag file to indicate that the setup has been completed

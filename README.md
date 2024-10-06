@@ -11,13 +11,25 @@ This version introduces several upgrades and modifications:
 - **Halving Intervals**: Modified Bitcoin to use the same halving interval in regtest mode as on the mainnet.
 - **Source Compilation**: Bitcoin Core is built from modified sources directly within the Docker image.
 - **Pre-mining**: Automatically mines **20,100 blocks** upon initialization to provide 1 million matured BTC.
-- Only create default wallet and mine initial blocks on first run.
+- Only creates a default wallet and mines initial blocks on the first run.
+- Uses a volume to store blockchain data for better data management and persistence.
 
-For additional documentation on setup and configuration, please refer to the original `@bitcoinerlab/tester` project, but this is the TLDR:
+Below is a quick start guide:
 
 ```bash
+# Build and submit to Docker Hub:
 docker login -u bitcoinerlab
 docker buildx create --use
 docker buildx build --platform linux/amd64,linux/arm64 -t bitcoinerlab/tape . --push
-docker run -d -p 8080:8080 -p 60401:60401 -p 3002:3002 bitcoinerlab/tape
+
+# If you did not build the image locally and need to pull it from Docker Hub:
+docker pull bitcoinerlab/tape
+
+# Create a volume for persistent data storage:
+docker volume create tape_data
+
+# Run the container with the volume attached:
+docker run --name bitcoinerlab_tape_instance \
+  -v tape_data:/root/tape-volume \
+  -d -p 8080:8080 -p 60401:60401 -p 3002:3002 bitcoinerlab/tape
 ```

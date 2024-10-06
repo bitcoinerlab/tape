@@ -16,8 +16,17 @@
 #    c. Build & Push to Docker Hub:
 #       $ docker buildx build --platform linux/amd64,linux/arm64 -t bitcoinerlab/tape . --push
 #
-# 3. Running the Image:
-#    $ docker run -d -p 8080:8080 -p 60401:60401 -p 3002:3002 bitcoinerlab/tape
+# 3. Creating a Docker Volume for Persistent Data:
+#    Create a Docker volume to store the blockchain, indexes, and regtest files:
+#    $ docker volume create tape_data
+#
+#    This volume will be used to store the following directories:
+#    - `/root/tape-volume/bitcoin`  : Bitcoin Core blockchain and wallet data
+#    - `/root/tape-volume/electrs`  : Electrs index data
+#    - `/root/tape-volume/bitcoinjs-regtest-server-data` : BitcoinJS server data
+#
+# 4. Running the Image:
+#    $ docker run --name bitcoinerlab_tape_instance -v tape_data:/root/tape-volume -d -p 8080:8080 -p 60401:60401 -p 3002:3002 bitcoinerlab/tape
 #
 # If you get random GPG signature errors, clear Docker cache:
 #    $ docker builder prune

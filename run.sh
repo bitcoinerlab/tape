@@ -25,6 +25,7 @@ export RPC=http://localhost:18443
 export PORT=8080
 
 node /root/regtest-server/index.js &
+NODE_PID=$!
 
 (cd /root/esplora && PORT=5000 npm run dev-server)
 
@@ -35,7 +36,11 @@ function graceful_shutdown {
   echo "Stopping Tape services gracefully..."
   /usr/bin/bitcoin-cli -datadir="$BITCOIN_DIR" -regtest stop
   kill -SIGTERM $ELECTRS_PID
-  wait $ELECTRS_PID
+  kill -SIGTERM $NODE_PID
+
+  # Wait up to 30 seconds for each process to terminate
+  timeout 30 wait $ELECTRS_PID || echo "Electrs did not terminate in time; force stopping." && kill -9 $ELECTRS_PID
+  timeout 30 wait $NODE_PID || echo "Node process did not terminate in time; force stopping." && kill -9 $NODE_PID
 }
 
 # Trap SIGTERM and SIGINT to stop services gracefully

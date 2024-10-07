@@ -3,7 +3,10 @@
 # Define a path to the flag file
 FLAG_FILE="$TAPE_VOLUME_DIR/.bitcoind_setup_done"
 
-/usr/bin/bitcoind -datadir="$BITCOIN_DIR" -server -regtest -txindex -zmqpubhashtx=tcp://127.0.0.1:30001 -zmqpubhashblock=tcp://127.0.0.1:30001 -rpcworkqueue=32 -fallbackfee=0.0002 &
+# Set default values if not provided
+: ${PREMINED:=432} # Set PREMINED to 432 if not already set
+
+/usr/bin/bitcoind -datadir="$BITCOIN_DIR" -server -regtest -txindex -zmqpubhashtx=tcp://127.0.0.1:30001 -zmqpubhashblock=tcp://127.0.0.1:30001 -rpcworkqueue=32 -fallbackfee=0.0002 $([ "$REINDEX" = "1" ] && echo "-reindex") &
 disown
 sleep 2
 
@@ -14,7 +17,7 @@ if [ ! -f "$FLAG_FILE" ]; then
   /usr/bin/bitcoin-cli -datadir="$BITCOIN_DIR" -regtest loadwallet default
   ADDRESS=$(/usr/bin/bitcoin-cli -datadir="$BITCOIN_DIR" -regtest getnewaddress "" bech32)
   #Mine 1 million btc and be rich!
-  /usr/bin/bitcoin-cli -datadir="$BITCOIN_DIR" -regtest generatetoaddress 20100 $ADDRESS
+  /usr/bin/bitcoin-cli -datadir="$BITCOIN_DIR" -regtest generatetoaddress $PREMINED $ADDRESS
   # Create a flag file to indicate that the setup has been completed
   touch "$FLAG_FILE"
 else

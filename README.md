@@ -6,13 +6,15 @@ This repository is a fork of `@bitcoinerlab/tester`, adapted for running RewindB
 
 This version introduces several upgrades and modifications:
 
-- **Operating System**: Updated to **Ubuntu 24.04** from Ubuntu 22.04.
-- **Bitcoin Version**: Upgraded to **27.1** from 26.0.
-- **Halving Intervals**: Modified Bitcoin to use the same halving interval in regtest mode as on the mainnet.
+- **Operating System**: Upgraded to **Ubuntu 24.04 LTS**.
+- **Bitcoin Core**: Upgraded to version **27.1**.
 - **Source Compilation**: Bitcoin Core is built from modified sources directly within the Docker image.
-- **Pre-mining**: Automatically mines **20,100 blocks** upon initialization to provide 1 million matured BTC.
-- Only creates a default wallet and mines initial blocks on the first run.
-- Uses a volume to store blockchain data for better data management and persistence.
+- **Halving Intervals**: Modified Bitcoin to use the same halving interval in regtest mode as on the mainnet.
+- **Pre-mining**: Only creates a default wallet and mines initial blocks on the first run.
+- **Data Management**: Utilizes a persistent docker volume for blockchain data storage.
+- **New Environment Variables**:
+  - `PREMINED`: Sets the number of blocks to mine initially (integer).
+  - `REINDEX`: Set to `1` to enable the `-reindex` flag when starting `bitcoind`.
 
 Below is a quick start guide:
 

@@ -36,21 +36,22 @@ cd /root
 function graceful_shutdown {
   echo "Stopping Tape services gracefully..."
   /usr/bin/bitcoin-cli -datadir="$BITCOIN_DIR" -regtest stop
-  kill -SIGTERM $ELECTRS_PID
-  kill -SIGTERM $REGTESTSERVER_PID
-  kill -SIGTERM $ESPLORA_PID
+  kill -SIGTERM $ELECTRS_PID $REGTESTSERVER_PID $ESPLORA_PID
 
-  # Wait up to 20 seconds to allow processes to terminate gracefully
-  for i in {1..20}; do
-    sleep 1
-    if ! ps -p $ELECTRS_PID $REGTESTSERVER_PID $ESPLORA_PID >/dev/null; then
-      echo "All processes have terminated gracefully."
+  # Wait up to 60 seconds for all processes to terminate gracefully
+  for i in {1..60}; do
+    # Check if all processes are stopped
+    if ! (pgrep -f "/usr/bin/bitcoind" >/dev/null || ps -q $ELECTRS_PID -o pid= >/dev/null || ps -q $REGTESTSERVER_PID -o pid= >/dev/null || ps -q $ESPLORA_PID -o pid= >/dev/null); then
+      echo "All services have terminated gracefully."
       return
     fi
+    sleep 1
   done
 
   echo "Not all processes terminated, forcing a stop..."
+  pkill -SIGKILL -f "/usr/bin/bitcoind"
   kill -SIGKILL $ELECTRS_PID $REGTESTSERVER_PID $ESPLORA_PID
+
 }
 
 # Trap SIGTERM and SIGINT to stop services gracefully

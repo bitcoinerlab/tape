@@ -19,12 +19,12 @@ This version introduces several upgrades and modifications:
 Below is a quick start guide:
 
 ```bash
-# Build and submit to Docker Hub:
-docker login -u bitcoinerlab
-docker buildx create --use
-docker buildx build --platform linux/amd64,linux/arm64 -t bitcoinerlab/tape . --push
+# Clone the repo and build your own image:
+git clone https://github.com/bitcoinerlab/tape.git
+cd tape
+docker build -t your_custom_tag .
 
-# If you did not build the image locally and need to pull it from Docker Hub:
+# If you do not want to build the image locally, pull it from Docker Hub instead:
 docker pull bitcoinerlab/tape
 
 # Create a volume for persistent data storage:
@@ -34,4 +34,10 @@ docker volume create tape_data
 docker run --name bitcoinerlab_tape_instance \
   -v tape_data:/root/tape-volume \
   -d -p 8080:8080 -p 60401:60401 -p 3002:3002 bitcoinerlab/tape
+# Replace bitcoinerlab/tape with your_custom_tag if you built your own image.
+
+# Only for Admins: Multi-platform compilation and Docker Hub submission:
+docker login -u bitcoinerlab
+docker buildx create --use
+docker buildx build --platform linux/amd64,linux/arm64 -t bitcoinerlab/tape . --push
 ```

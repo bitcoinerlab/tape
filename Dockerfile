@@ -79,21 +79,8 @@ WORKDIR /root/bitcoin-29.2
 RUN sed -i 's/consensus.nSubsidyHalvingInterval = 150;/consensus.nSubsidyHalvingInterval = 210000;/' src/kernel/chainparams.cpp
 
 RUN mkdir build && cd build && \
-  cmake .. \
-    -DBUILD_BITCOIN_QT=OFF \
-    -DBUILD_GUI=OFF \
-    -DENABLE_WALLET=ON \
-    -DENABLE_ZMQ=ON \
-    -DENABLE_TESTS=OFF \
-    -DENABLE_BENCH=OFF \
-    -DENABLE_FUZZ=OFF \
-    -DENABLE_UPNP=OFF \
-    -DENABLE_MAN=OFF \
-    -DWITH_BDB=OFF \
-    -DENABLE_TXINDEX=ON \
-    -DCMAKE_INSTALL_PREFIX=/usr && \
-  make -j$(nproc) && \
-  make install
+  cmake .. -DWITH_ZMQ=ON -DCMAKE_INSTALL_PREFIX=/usr && \
+  make -j$(nproc) && make install
 
 WORKDIR /root
 

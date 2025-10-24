@@ -46,6 +46,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Update packages and install essential ones
 RUN apt-get update && apt-get install -y \
     build-essential \
+    cmake \
     git \
     curl \
     vim \
@@ -62,7 +63,7 @@ CMD ["/bin/bash"]
 ## --with-zmq
 
 #See: doc/build-unix.md
-RUN apt-get install -y build-essential libtool autotools-dev automake pkg-config bsdmainutils python3 &&\
+RUN apt-get install -y build-essential libtool pkg-config bsdmainutils python3 &&\
   apt-get install -y libevent-dev libboost-dev &&\
   apt install -y libsqlite3-dev
 
@@ -77,9 +78,21 @@ WORKDIR /root/bitcoin-29.2
 # Modify chainparams.cpp before compiling so regtest has same halving as mainnet and we can be rich in regtest too
 RUN sed -i 's/consensus.nSubsidyHalvingInterval = 150;/consensus.nSubsidyHalvingInterval = 210000;/' src/kernel/chainparams.cpp
 
-RUN ./autogen.sh &&\
-  ./configure --without-gui --enable-zmq --enable-txindex --disable-bdb --disable-tests --disable-gui-tests --disable-bench --prefix=/usr &&\
-  make -j 4 &&\
+RUN mkdir build && cd build && \
+  cmake .. \
+    -DBUILD_BITCOIN_QT=OFF \
+    -DBUILD_GUI=OFF \
+    -DENABLE_WALLET=ON \
+    -DENABLE_ZMQ=ON \
+    -DENABLE_TESTS=OFF \
+    -DENABLE_BENCH=OFF \
+    -DENABLE_FUZZ=OFF \
+    -DENABLE_UPNP=OFF \
+    -DENABLE_MAN=OFF \
+    -DWITH_BDB=OFF \
+    -DENABLE_TXINDEX=ON \
+    -DCMAKE_INSTALL_PREFIX=/usr && \
+  make -j$(nproc) && \
   make install
 
 WORKDIR /root
@@ -98,7 +111,7 @@ RUN chmod +x install_leveldb.sh && \
   chmod +x run.sh && \
   ./install_leveldb.sh
 
-RUN git clone -b fix-bitcoinjs-lib-version https://github.com/bitcoinerlab/regtest-server.git
+RUN git clone -b feat/zeromq6-compat https://github.com/bitcoinerlab/regtest-server.git
 
 WORKDIR /root/regtest-server
 

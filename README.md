@@ -7,7 +7,7 @@ This repository is a fork of `@bitcoinerlab/tester`, adapted for running RewindB
 This version introduces several upgrades and modifications:
 
 - **Operating System**: Upgraded to **Ubuntu 24.04 LTS**.
-- **Bitcoin Core**: Upgraded to version **27.1**.
+- **Bitcoin Core**: Upgraded to version **29.2**.
 - **Source Compilation**: Bitcoin Core is built from modified sources directly within the Docker image.
 - **Halving Intervals**: Modified Bitcoin to use the same halving interval in regtest mode as on the mainnet.
 - **Pre-mining**: Only creates a default wallet and mines initial blocks on the first run.

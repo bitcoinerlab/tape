@@ -69,10 +69,10 @@ RUN apt-get install -y build-essential libtool autotools-dev automake pkg-config
 #we'll need zmq support
 RUN apt-get install -y libzmq3-dev
 
-RUN wget https://bitcoincore.org/bin/bitcoin-core-27.1/bitcoin-27.1.tar.gz &&\
-  tar zxvf bitcoin-27.1.tar.gz
+RUN wget https://bitcoincore.org/bin/bitcoin-core-29.2/bitcoin-29.2.tar.gz &&\
+  tar zxvf bitcoin-29.2.tar.gz
 
-WORKDIR /root/bitcoin-27.1
+WORKDIR /root/bitcoin-29.2
 
 # Modify chainparams.cpp before compiling so regtest has same halving as mainnet and we can be rich in regtest too
 RUN sed -i 's/consensus.nSubsidyHalvingInterval = 150;/consensus.nSubsidyHalvingInterval = 210000;/' src/kernel/chainparams.cpp
@@ -84,7 +84,7 @@ RUN ./autogen.sh &&\
 
 WORKDIR /root
 
-RUN curl --silent --location https://deb.nodesource.com/setup_20.x | bash - &&\
+RUN curl --silent --location https://deb.nodesource.com/setup_22.x | bash - &&\
   apt-get install -y nodejs
 
 RUN mkdir /root/regtest-data && \
@@ -113,9 +113,10 @@ WORKDIR /root
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 RUN apt install -y git clang
+ENV COMMIT_SHA=f1823d82b03dbd1dfef53f7b3611128dd2f4c1d2
 RUN git clone https://github.com/blockstream/electrs
 WORKDIR /root/electrs
-RUN git checkout new-index
+RUN git checkout ${COMMIT_SHA}
 RUN cargo build --release
 ENV PATH="/root/electrs/target/release:${PATH}"
 # Expose electrs & esplora ports
@@ -123,7 +124,7 @@ EXPOSE 60401 3002
 
 # Clone and setup Esplora
 WORKDIR /root
-ENV COMMIT_SHA=9067d8bf4323d8fea4cbf637b7c11ebc528d56e5
+ENV COMMIT_SHA=09f8508d51f3f4da122b514a94fa4183740fd764
 RUN git clone https://github.com/Blockstream/esplora
 WORKDIR /root/esplora
 RUN git checkout ${COMMIT_SHA}

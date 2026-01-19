@@ -70,16 +70,16 @@ RUN apt-get install -y build-essential libtool pkg-config bsdmainutils python3 &
 #we'll need zmq support
 RUN apt-get install -y libzmq3-dev
 
-RUN wget https://bitcoincore.org/bin/bitcoin-core-29.2/bitcoin-29.2.tar.gz &&\
-  tar zxvf bitcoin-29.2.tar.gz
+RUN wget https://bitcoincore.org/bin/bitcoin-core-30.2/bitcoin-30.2.tar.gz &&\
+  tar zxvf bitcoin-30.2.tar.gz
 
-WORKDIR /root/bitcoin-29.2
+WORKDIR /root/bitcoin-30.2
 
 # Modify chainparams.cpp before compiling so regtest has same halving as mainnet and we can be rich in regtest too
 RUN sed -i 's/consensus.nSubsidyHalvingInterval = 150;/consensus.nSubsidyHalvingInterval = 210000;/' src/kernel/chainparams.cpp
 
 RUN mkdir build && cd build && \
-  cmake .. -DWITH_ZMQ=ON -DCMAKE_INSTALL_PREFIX=/usr && \
+  cmake .. -DWITH_ZMQ=ON -DENABLE_IPC=OFF -DCMAKE_INSTALL_PREFIX=/usr && \
   make -j$(nproc) && make install
 
 WORKDIR /root

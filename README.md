@@ -2,21 +2,26 @@
 
 This repository is a fork of `@bitcoinerlab/tester`, adapted for running RewindBitcoin's Tape services.
 
-## Changes
+Local build patches, their purpose and validation are documented in [patches/README.md](patches/README.md).
 
-This version introduces several upgrades and modifications:
+## Features
 
-- **Operating System**: Upgraded to **Ubuntu 24.04 LTS**.
-- **Bitcoin Core**: Upgraded to version **30.2**.
+Tape provides the following services and configuration:
+
+- **Operating System**: **Ubuntu 24.04 LTS**.
+- **Bitcoin Core**: Version **30.4**.
 - **Source Compilation**: Bitcoin Core is built from modified sources directly within the Docker image.
-- **Halving Intervals**: Modified Bitcoin to use the same halving interval in regtest mode as on the mainnet.
+- **Halving Intervals**: Regtest uses a **210000-block** subsidy halving interval, matching mainnet.
 - **Pre-mining**: Only creates a default wallet and mines initial blocks on the first run.
 - **Data Management**: Utilizes a persistent docker volume for blockchain data storage.
-- **New Environment Variables**:
+- **Environment Variables**:
   - `PREMINED`: Sets the number of blocks to mine initially (integer).
   - `REINDEX`: Set to `1` to enable the `-reindex` flag when starting `bitcoind`.
 
 Below is a quick start guide:
+
+The Docker example uses a public development key and publishes ports on all
+interfaces. Restrict access to trusted clients.
 
 ```bash
 # Clone the repo and build your own image:

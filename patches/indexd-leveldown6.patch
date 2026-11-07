@@ -1,0 +1,23 @@
+Subject: Omit undefined iterator bounds when calling leveldown 6
+Applies-To: indexd 0.9.1, installed by regtest-server
+
+indexd adds all four range properties, including missing bounds. leveldown 6
+serializes undefined bounds as keys, so confirmed records exist on disk but
+range queries return no results. Omit only the missing bounds. This changes
+queries, not database contents or encoding; no migration or reindex is needed.
+
+diff --git a/node_modules/indexd/dbwrapper.js b/node_modules/indexd/dbwrapper.js
+--- a/node_modules/indexd/dbwrapper.js
++++ b/node_modules/indexd/dbwrapper.js
+@@ -65,6 +65,11 @@ function iterator (type, options, forEach, callback) {
+   if (!(options.gt || options.gte)) return callback(new RangeError('Missing minimum'))
+   if (!(options.lt || options.lte)) return callback(new RangeError('Missing maximum'))
+ 
++  // leveldown 6 treats undefined bounds as keys, not missing options.
++  for (let bound of ['gt', 'gte', 'lt', 'lte']) {
++    if (options[bound] === undefined) delete options[bound]
++  }
++
+   let iterator = this.iterator(options)
+ 
+   function loop (err, key, value) {
